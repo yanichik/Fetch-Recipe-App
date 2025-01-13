@@ -61,12 +61,12 @@ class RecipesViewController: UIViewController {
         // Select allRecipes endpoint at default.
         endpointsSegment.selectedSegmentIndex = 1
         
-        endpointsSegment.addTarget(self, action: #selector(selectEndpoint(_:)), for: .valueChanged)
+        endpointsSegment.addTarget(self, action: #selector(selectSegment(_:)), for: .valueChanged)
         navigationItem.titleView = endpointsSegment
         
     }
     
-    @objc func selectEndpoint(_ sender: UISegmentedControl) {
+    @objc func selectSegment(_ sender: UISegmentedControl) {
         // Upon selection send fetch request. Except for "instruction" segment at index 0 - selection routed to index 1.
         switch sender.selectedSegmentIndex {
         case 0:
