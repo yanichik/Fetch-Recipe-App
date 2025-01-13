@@ -34,22 +34,23 @@ class RecipeCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func loadRecipeImage(_ cellData: Recipe) {
-        if let photoUrlString = cellData.photoUrlSmall {
-            Task {
-                do {
-                    if let image = try await networkManager.loadImage(from: photoUrlString){
-                        DispatchQueue.main.async { [weak self] in
-                            self?.recipeImageView.image = image
-                            self?.activityIndicator.stopAnimating()
-                        }
-                    }
-                } catch {
-                    print(error)
-                    DispatchQueue.main.async { [weak self] in
-                        self?.activityIndicator.stopAnimating()
-                    }
+    func loadRecipeImage(_ cellData: Recipe) async throws {
+        // Table view cells are being re-used. Since image loading is async, during cell dequeue there is short time where wrong image appears. Nil out the image prior to load so only spinner is visible during loading.
+        recipeImageView.image = nil
+        if let photoUrlString = cellData.photoUrlSmall, recipeImageView.image == nil {
+            do {
+//                if let image = try await networkManager.loadImage(from: "https://some.url/small.jpg"){
+                if let image = try await networkManager.loadImage(from: photoUrlString){
+                recipeImageView.image = image
+                activityIndicator.stopAnimating()
                 }
+            } catch {
+//                print(error)
+//                DispatchQueue.main.async { [weak self] in
+//                activityIndicator.stopAnimating()
+//                self?.activityIndicator.stopAnimating()
+//                }
+                throw(error)
             }
         }
     }

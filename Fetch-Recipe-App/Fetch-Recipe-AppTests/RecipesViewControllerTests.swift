@@ -1,6 +1,6 @@
 //
-//  Fetch_Recipe_AppTests.swift
-//  Fetch-Recipe-AppTests
+//  RecipesViewControllerTests.swift
+//  RecipesViewControllerTests
 //
 //  Created by Yan's Mac on 12/28/24.
 //
@@ -8,7 +8,9 @@
 import XCTest
 @testable import Fetch_Recipe_App
 
-final class Fetch_Recipe_AppTests: XCTestCase {
+final class RecipesViewControllerTests: XCTestCase {
+    
+    let recipesViewModel = ReceipesViewModel()
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -16,6 +18,10 @@ final class Fetch_Recipe_AppTests: XCTestCase {
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
+    }
+    
+    func testLoadCellWithBrokenLink() {
+        // "https://some.url/small.jpg"
     }
 
     func testExample() throws {

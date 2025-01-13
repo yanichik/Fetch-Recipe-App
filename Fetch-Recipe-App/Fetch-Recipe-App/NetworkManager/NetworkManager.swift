@@ -14,7 +14,7 @@ enum Endpoint: String, CaseIterable {
     case empty = "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"
 }
 
-enum ResponseError: Error, CustomStringConvertible {
+enum ResponseError: Error, CustomStringConvertible, LocalizedError {
     case invalidUrl
     case invalidReponse (statusCode: Int)
     case invalidData (error: any Error)
@@ -27,6 +27,17 @@ enum ResponseError: Error, CustomStringConvertible {
             return "Received invalid response status code: \(statusCode)"
         case .invalidData(let error):
             return "Received invalid data with error: \(error)"
+        }
+    }
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidUrl:
+            return "Unable to connect to the server."
+        case .invalidReponse:
+            return "The server returned an invalid response."
+        case .invalidData:
+            return "The data couldn’t be read because it is missing or corrupted."
         }
     }
 }
@@ -63,4 +74,16 @@ struct NetworkManager {
             throw ResponseError.invalidData(error: error)
         }
     }
+    
+    // TODO: Implement cache - upon initial download, load data to cache.
+    // When fetch request sent, first check if in cache.
+    // TODO: Figure out how to load from cache when network response differs from existing data in cache
+    
+//    func isInCache() {
+//        
+//    }
+    
+//    func loadToCache(){
+//        
+//    }
 }

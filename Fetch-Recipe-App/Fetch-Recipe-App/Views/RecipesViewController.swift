@@ -11,9 +11,8 @@ class RecipesViewController: UIViewController {
     var noRecipesAlert: UIAlertController?
     let recipesVM = ReceipesViewModel()
     let networkManager = NetworkManager()
-    let picker = UIPickerView()
-    
-    
+    var endpointsSegment = UISegmentedControl()
+    var hasPresentedLoadImageErrorAlert = false
     
     var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .plain)
@@ -28,37 +27,53 @@ class RecipesViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .blue
+        view.backgroundColor = .systemBackground
         tableView.delegate = self
         tableView.dataSource = self
         view.addSubview(tableView)
         configureTableView()
-        configurePicker()
+        configureEndpointsSegment()
     }
     
-    fileprivate func configurePicker() {
-        picker.delegate = self
-        picker.dataSource = self
-//        picker.translatesAutoresizingMaskIntoConstraints = false
-//        picker.frame = CGRect(x: 0, y: 0, width: view.frame.width/2, height: 50)
-        picker.transform = CGAffineTransform(rotationAngle: -.pi/2)
+    fileprivate func configureEndpointsSegment() {
+        // First segment used as instruction to user to select endpoint, and disabled.
+        endpointsSegment.insertSegment(withTitle: "Select Endpoint: ", at: 0, animated: false)
+        endpointsSegment.setEnabled(false, forSegmentAt: 0)
+        endpointsSegment.setWidth(130, forSegmentAt: 0)
         
-//        NSLayoutConstraint.activate([
-//            picker.widthAnchor.constraint(equalToConstant: 50),
-//            picker.heightAnchor.constraint(equalToConstant: view.frame.width / 2)
-//        ])
+        // Separate font attributes for "instruction" segment and endpoint segments.
+        let disabledFontAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 15),
+            .foregroundColor: UIColor.black,
+        ]
+        endpointsSegment.setTitleTextAttributes(disabledFontAttributes, for: .disabled)
         
-//        navigationItem.titleView = picker
-//        navigationItem.titleView?.backgroundColor = .green
+        let enabledFontAttributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 12)
+        ]
+        endpointsSegment.setTitleTextAttributes(enabledFontAttributes, for: .normal)
         
-        let segment = UISegmentedControl(items: Endpoint.allCases.map {String(describing: $0)})
-        segment.translatesAutoresizingMaskIntoConstraints = false
-        navigationItem.titleView = segment
-        navigationItem.titleView?.backgroundColor = .green
+        // Insert endpoint options into segment.
+        for (i, endpoint) in Endpoint.allCases.enumerated() {
+            endpointsSegment.insertSegment(withTitle: String(describing: endpoint), at: i + 1, animated: false)
+        }
         
-        NSLayoutConstraint.activate([
-            navigationItem.titleView!.centerXAnchor.constraint(equalTo: navigationController!.navigationBar.centerXAnchor, constant: 40)
-        ])
+        // Select allRecipes endpoint at default.
+        endpointsSegment.selectedSegmentIndex = 1
+        
+        endpointsSegment.addTarget(self, action: #selector(selectEndpoint(_:)), for: .valueChanged)
+        navigationItem.titleView = endpointsSegment
+        
+    }
+    
+    @objc func selectEndpoint(_ sender: UISegmentedControl) {
+        // Upon selection send fetch request. Except for "instruction" segment at index 0 - selection routed to index 1.
+        switch sender.selectedSegmentIndex {
+        case 0:
+            sender.selectedSegmentIndex = 1
+        default:
+            fetchRecipes(with: Endpoint.allCases[sender.selectedSegmentIndex - 1])
+        }
     }
     
     fileprivate func configureTableView() {
@@ -72,27 +87,43 @@ class RecipesViewController: UIViewController {
     }
     
     fileprivate func fetchRecipes(with endpoint: Endpoint) {
+        hasPresentedLoadImageErrorAlert = false
         Task {
             do {
                 let result = try await networkManager.fetchRecipes(endpoint: endpoint)
                 recipesVM.recipes = result.recipes
                 recipesVM.updateCellHeight(for: tableView.frame.height)
-//                print(tableView.frame.width)
                 tableView.reloadData()
             } catch {
                 // TODO: cleanup error alert to display ResponseError message only.
-                // TODO: refactor to separate method
-                noRecipesAlert = UIAlertController(title: "No Recipes Fetched", message: "\(error.localizedDescription)", preferredStyle: .alert)
-                noRecipesAlert?.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: { [weak self] _ in
-                    self?.picker.selectRow(0, inComponent: 0, animated: true)
-                    self?.pickerView(self!.picker, didSelectRow: 0, inComponent: 0)
-                }))
-                print(error as! ResponseError)
-//                print("\(error)")
-//                print(error.localizedDescription)
-                present(noRecipesAlert!, animated: true)
+                // TODO: refactor to separate method.
+                presentErrorAlert(with: error)
             }
         }
+    }
+    
+    fileprivate func shiftSegmentAndFetchRecipes() {
+        endpointsSegment.selectedSegmentIndex = 1
+        fetchRecipes(with: .allRecipes)
+    }
+    
+    fileprivate func presentErrorAlert(with error: any Error) {
+        noRecipesAlert = UIAlertController(title: "No Recipes Fetched", message: "\(error.localizedDescription)", preferredStyle: .alert)
+        noRecipesAlert?.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: { [weak self] _ in
+            if !(self?.hasPresentedLoadImageErrorAlert ?? false) {
+                self?.shiftSegmentAndFetchRecipes()
+            }
+        }))
+        noRecipesAlert?.addAction(UIAlertAction(title: "See Technical Details", style: .default, handler: { [weak self] _ in
+            let developerAlert = UIAlertController(title: "Technical Error Message", message: "\(error)", preferredStyle: .alert)
+            developerAlert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: { [weak self] _ in
+                if !(self?.hasPresentedLoadImageErrorAlert ?? false) {
+                    self?.shiftSegmentAndFetchRecipes()
+                }
+            }))
+            self?.present(developerAlert, animated: true)
+        }))
+        present(noRecipesAlert!, animated: true)
     }
 }
 
@@ -102,21 +133,41 @@ extension RecipesViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        Task {
+            do {
+                try await loadCellImage(for: cell, at: indexPath)
+            } catch {
+                if !hasPresentedLoadImageErrorAlert {
+                    hasPresentedLoadImageErrorAlert = true
+                    presentErrorAlert(with: error)
+                }
+            }
+        }
+    }
+    
+    func loadCellImage(for cell: UITableViewCell, at indexPath: IndexPath) async throws {
         guard let recipes = recipesVM.recipes else { return }
         if let recipeCell = cell as? RecipeCell {
-            recipeCell.loadRecipeImage(recipes[indexPath.row])
+            try await recipeCell.loadRecipeImage(recipes[indexPath.row])
         }
     }
 }
 
 extension RecipesViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let rows = recipesVM.recipes?.count else { return 0 }
+        guard let rows = recipesVM.recipes?.count,
+                rows > 0 else { return 1 }
         return rows
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let recipes = recipesVM.recipes else { return UITableViewCell()}
+        guard let recipes = recipesVM.recipes,
+              recipes.count > 0 else {
+            let cell = UITableViewCell()
+            cell.textLabel?.text = "Fetched data returned 0 recipes."
+            cell.textLabel?.textAlignment = .center
+            return cell
+        }
         if let cell = tableView.dequeueReusableCell(withIdentifier: "recipe", for: indexPath) as? RecipeCell {
             cell.cellData = recipes[indexPath.row]
             return cell
@@ -127,50 +178,3 @@ extension RecipesViewController: UITableViewDataSource {
         }
     }
 }
-
-extension RecipesViewController: UIPickerViewDelegate {
-//    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-//        let rows = Endpoint.allCases
-//        return String(describing: rows[row])
-//    }
-    
-//    func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-//        return 200
-//    }
-    
-    func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
-        return recipesVM.pickerLabelWidth
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
-        let rows = Endpoint.allCases
-        let titleLabel = UILabel()
-        titleLabel.textAlignment = .center
-        titleLabel.frame = CGRect(x: 0, y: 0, width: recipesVM.pickerLabelWidth, height: 50)
-        titleLabel.text = String(describing: rows[row])
-        titleLabel.transform = CGAffineTransform(rotationAngle: .pi/2)
-        return titleLabel
-    }
-    
-//    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-//        let endpoints = Endpoint.allCases
-//        fetchRecipes(with: endpoints[row])
-//    }
-}
-
-extension RecipesViewController: UIPickerViewDataSource {
-    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return 1
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        let rows = Endpoint.allCases
-        return rows.count
-    }
-    
-    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let endpoints = Endpoint.allCases
-        fetchRecipes(with: endpoints[row])
-    }
-}
-
