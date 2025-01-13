@@ -1,6 +1,6 @@
 //
-//  RecipesViewControllerTests.swift
-//  RecipesViewControllerTests
+//  RecipesViewModelTests.swift
+//  RecipesViewModelTests
 //
 //  Created by Yan's Mac on 12/28/24.
 //
@@ -8,7 +8,7 @@
 import XCTest
 @testable import Fetch_Recipe_App
 
-final class RecipesViewControllerTests: XCTestCase {
+final class RecipesViewModelTests: XCTestCase {
     
     let recipesViewModel = ReceipesViewModel()
 
