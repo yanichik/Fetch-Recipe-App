@@ -22,6 +22,7 @@ class RecipesViewController: UIViewController {
     
     override func loadView() {
         super.loadView()
+        setupBindings()
         fetchRecipes(with: .allRecipes)
     }
 
@@ -33,6 +34,15 @@ class RecipesViewController: UIViewController {
         view.addSubview(tableView)
         configureTableView()
         configureEndpointsSegment()
+    }
+    
+    fileprivate func setupBindings() {
+        recipesVM.onRecipesUpdated = { [weak self] in
+            guard let self = self else { return }
+            recipesVM.updateCellHeight(for: tableView.frame.height)
+            tableView.reloadData()
+            
+        }
     }
     
     fileprivate func configureEndpointsSegment() {
@@ -92,8 +102,6 @@ class RecipesViewController: UIViewController {
             do {
                 let result = try await networkManager.fetchRecipes(endpoint: endpoint)
                 recipesVM.recipes = result.recipes
-                recipesVM.updateCellHeight(for: tableView.frame.height)
-                tableView.reloadData()
             } catch {
                 // TODO: cleanup error alert to display ResponseError message only.
                 // TODO: refactor to separate method.
