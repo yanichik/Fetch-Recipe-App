@@ -43,6 +43,10 @@ enum ResponseError: Error, CustomStringConvertible, LocalizedError {
 }
 
 struct NetworkManager {
+    static let shared = NetworkManager()
+    
+    init() { }
+    
     func fetchRecipes(endpoint: Endpoint) async throws -> Recipes{
         guard let url = URL(string: endpoint.rawValue) else {
             throw ResponseError.invalidUrl
@@ -74,16 +78,4 @@ struct NetworkManager {
             throw ResponseError.invalidData(error: error)
         }
     }
-    
-    // TODO: Implement cache - upon initial download, load data to cache.
-    // When fetch request sent, first check if in cache.
-    // TODO: Figure out how to load from cache when network response differs from existing data in cache
-    
-//    func isInCache() {
-//        
-//    }
-    
-//    func loadToCache(){
-//        
-//    }
 }

@@ -14,14 +14,12 @@ class RecipeCell: UITableViewCell {
     var recipeImageView = UIImageView()
     var activityIndicator = UIActivityIndicatorView(style: .medium)
     
-    let networkManager = NetworkManager()
-    
     var cellData: Recipe? {
-      didSet {
-          guard let cellData = cellData else { return }
-          nameLabel.text = cellData.name
-          cuisineLabel.text = "(\(cellData.cuisine + " Cuisine"))"
-          activityIndicator.startAnimating()
+        didSet {
+            guard let cellData = cellData else { return }
+            nameLabel.text = cellData.name
+            cuisineLabel.text = "(\(cellData.cuisine + " Cuisine"))"
+            activityIndicator.startAnimating()
         }
     }
     
@@ -31,31 +29,34 @@ class RecipeCell: UITableViewCell {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
     }
     
     func loadRecipeImage(_ cellData: Recipe) async throws {
         // Table view cells are being re-used. Since image loading is async, during cell dequeue there is short time where wrong image appears. Nil out the image prior to load so only spinner is visible during loading.
-        recipeImageView.image = nil
-        if let photoUrlString = cellData.photoUrlSmall, recipeImageView.image == nil {
-            do {
-//                if let image = try await networkManager.loadImage(from: "https://some.url/small.jpg"){
-                if let image = try await networkManager.loadImage(from: photoUrlString){
-                recipeImageView.image = image
-                activityIndicator.stopAnimating()
+        if let image = ImageCache.shared.loadImageFromDisk(forUrlString: cellData.photoUrlSmall) {
+            recipeImageView.image = image
+            activityIndicator.stopAnimating()
+            return
+        } else {
+            recipeImageView.image = nil
+            if let photoUrlString = cellData.photoUrlSmall {
+                do {
+                    guard let url = URL(string: photoUrlString) else { return }
+                    try await ImageCache.shared.fetchImage(url: url) { [weak self] image in
+                        Task {
+                            self?.recipeImageView.image = image
+                            self?.activityIndicator.stopAnimating()
+                        }
+                    }
+                } catch {
+                    throw(error)
                 }
-            } catch {
-//                print(error)
-//                DispatchQueue.main.async { [weak self] in
-//                activityIndicator.stopAnimating()
-//                self?.activityIndicator.stopAnimating()
-//                }
-                throw(error)
             }
         }
     }
     
-    fileprivate func configureCell() {
+    private func configureCell() {
         contentView.addSubview(nameLabel)
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.numberOfLines = 0

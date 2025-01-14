@@ -10,13 +10,13 @@ import Foundation
 class ReceipesViewModel {
     var recipes: [Recipe]? {
         didSet {
-            onRecipesUpdated?()
+            onRecipesUpdated()
         }
     }
     var cellHeight: CGFloat = 0.0
     var pickerLabelWidth: CGFloat = 85
     
-    var onRecipesUpdated: (() -> Void)?
+    var onRecipesUpdated: (() -> Void) = { }
     
     func updateCellHeight(for tableViewHeight: CGFloat) {
         cellHeight = tableViewHeight/10

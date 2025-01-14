@@ -10,7 +10,6 @@ import UIKit
 class RecipesViewController: UIViewController {
     var noRecipesAlert: UIAlertController?
     let recipesVM = ReceipesViewModel()
-    let networkManager = NetworkManager()
     var endpointsSegment = UISegmentedControl()
     var hasPresentedLoadImageErrorAlert = false
     
@@ -36,7 +35,7 @@ class RecipesViewController: UIViewController {
         configureEndpointsSegment()
     }
     
-    fileprivate func setupBindings() {
+    private func setupBindings() {
         recipesVM.onRecipesUpdated = { [weak self] in
             guard let self = self else { return }
             recipesVM.updateCellHeight(for: tableView.frame.height)
@@ -45,7 +44,7 @@ class RecipesViewController: UIViewController {
         }
     }
     
-    fileprivate func configureEndpointsSegment() {
+    private func configureEndpointsSegment() {
         // First segment used as instruction to user to select endpoint, and disabled.
         endpointsSegment.insertSegment(withTitle: "Select Endpoint: ", at: 0, animated: false)
         endpointsSegment.setEnabled(false, forSegmentAt: 0)
@@ -86,7 +85,7 @@ class RecipesViewController: UIViewController {
         }
     }
     
-    fileprivate func configureTableView() {
+    private func configureTableView() {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
@@ -96,11 +95,11 @@ class RecipesViewController: UIViewController {
         ])
     }
     
-    fileprivate func fetchRecipes(with endpoint: Endpoint) {
+    private func fetchRecipes(with endpoint: Endpoint) {
         hasPresentedLoadImageErrorAlert = false
         Task {
             do {
-                let result = try await networkManager.fetchRecipes(endpoint: endpoint)
+                let result = try await NetworkManager.shared.fetchRecipes(endpoint: endpoint)
                 recipesVM.recipes = result.recipes
             } catch {
                 // TODO: cleanup error alert to display ResponseError message only.
@@ -110,12 +109,12 @@ class RecipesViewController: UIViewController {
         }
     }
     
-    fileprivate func shiftSegmentAndFetchRecipes() {
+    private func shiftSegmentAndFetchRecipes() {
         endpointsSegment.selectedSegmentIndex = 1
         fetchRecipes(with: .allRecipes)
     }
     
-    fileprivate func presentErrorAlert(with error: any Error) {
+    private func presentErrorAlert(with error: any Error) {
         noRecipesAlert = UIAlertController(title: "No Recipes Fetched", message: "\(error.localizedDescription)", preferredStyle: .alert)
         noRecipesAlert?.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: { [weak self] _ in
             if !(self?.hasPresentedLoadImageErrorAlert ?? false) {
@@ -153,7 +152,7 @@ extension RecipesViewController: UITableViewDelegate {
         }
     }
     
-    func loadCellImage(for cell: UITableViewCell, at indexPath: IndexPath) async throws {
+    private func loadCellImage(for cell: UITableViewCell, at indexPath: IndexPath) async throws {
         guard let recipes = recipesVM.recipes else { return }
         if let recipeCell = cell as? RecipeCell {
             try await recipeCell.loadRecipeImage(recipes[indexPath.row])

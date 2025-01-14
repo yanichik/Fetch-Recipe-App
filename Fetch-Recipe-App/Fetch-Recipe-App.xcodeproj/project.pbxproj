@@ -30,20 +30,32 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FADD9FD62D20866300542579 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-App" target */ = {
+		FAD997EE2D35C33500EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Fetch_Recipe_App.xcdatamodeld,
 				Info.plist,
 			);
 			target = FADD9FAA2D20866200542579 /* Fetch-Recipe-App */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		FAD997EF2D35C33500EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Compile Sources" phase from "Fetch-Recipe-App" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = FADD9FA72D20866200542579 /* Sources */;
+			membershipExceptions = (
+				Fetch_Recipe_App.xcdatamodeld,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		FADD9FAD2D20866200542579 /* Fetch-Recipe-App */ = {
+		FAD997E32D35C33500EACFD1 /* Fetch-Recipe-App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				FADD9FD62D20866300542579 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-App" target */,
+				FAD997EE2D35C33500EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-App" target */,
+				FAD997EF2D35C33500EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Compile Sources" phase from "Fetch-Recipe-App" target */,
 			);
 			path = "Fetch-Recipe-App";
 			sourceTree = "<group>";
@@ -88,7 +100,7 @@
 		FADD9FA22D20866200542579 = {
 			isa = PBXGroup;
 			children = (
-				FADD9FAD2D20866200542579 /* Fetch-Recipe-App */,
+				FAD997E32D35C33500EACFD1 /* Fetch-Recipe-App */,
 				FADD9FC72D20866300542579 /* Fetch-Recipe-AppTests */,
 				FADD9FD12D20866300542579 /* Fetch-Recipe-AppUITests */,
 				FADD9FAC2D20866200542579 /* Products */,
@@ -121,7 +133,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				FADD9FAD2D20866200542579 /* Fetch-Recipe-App */,
+				FAD997E32D35C33500EACFD1 /* Fetch-Recipe-App */,
 			);
 			name = "Fetch-Recipe-App";
 			packageProductDependencies = (
