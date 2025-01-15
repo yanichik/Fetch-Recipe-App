@@ -12,7 +12,7 @@ class RecipeCell: UITableViewCell {
     var nameLabel = UILabel()
     var cuisineLabel = UILabel()
     var recipeImageView = UIImageView()
-    var activityIndicator = UIActivityIndicatorView(style: .medium)
+    var activityIndicator = UIActivityIndicatorView(style: .large)
     
     var cellData: Recipe? {
         didSet {
@@ -33,25 +33,22 @@ class RecipeCell: UITableViewCell {
     }
     
     func loadRecipeImage(_ cellData: Recipe) async throws {
-        // Table view cells are being re-used. Since image loading is async, during cell dequeue there is short time where wrong image appears. Nil out the image prior to load so only spinner is visible during loading.
-        if let image = ImageCache.shared.loadImageFromDisk(forUrlString: cellData.photoUrlSmall) {
+        if let image = ImageCache.shared.loadImageFromDisk(forCellData: cellData) {
             recipeImageView.image = image
             activityIndicator.stopAnimating()
             return
         } else {
+            // Table view cells are being re-used. Since image loading is async, during cell dequeue there is short time where wrong image appears. Nil out the image prior to load so only spinner is visible during loading.
             recipeImageView.image = nil
-            if let photoUrlString = cellData.photoUrlSmall {
-                do {
-                    guard let url = URL(string: photoUrlString) else { return }
-                    try await ImageCache.shared.fetchImage(url: url) { [weak self] image in
-                        Task {
-                            self?.recipeImageView.image = image
-                            self?.activityIndicator.stopAnimating()
-                        }
+            do {
+                try await ImageCache.shared.fetchImage(forCellData: cellData) { [weak self] image in
+                    Task {
+                        self?.recipeImageView.image = image
+                        self?.activityIndicator.stopAnimating()
                     }
-                } catch {
-                    throw(error)
                 }
+            } catch {
+                throw(error)
             }
         }
     }

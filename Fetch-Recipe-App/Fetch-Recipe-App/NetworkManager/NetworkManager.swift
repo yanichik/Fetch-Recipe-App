@@ -47,8 +47,8 @@ struct NetworkManager {
     
     init() { }
     
-    func fetchRecipes(endpoint: Endpoint) async throws -> Recipes{
-        guard let url = URL(string: endpoint.rawValue) else {
+    func fetchRecipes(endpoint: String) async throws -> Recipes{
+        guard let url = URL(string: endpoint) else {
             throw ResponseError.invalidUrl
         }
         let (data, response) = try await URLSession.shared.data(from: url)

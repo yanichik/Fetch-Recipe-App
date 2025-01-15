@@ -99,11 +99,10 @@ class RecipesViewController: UIViewController {
         hasPresentedLoadImageErrorAlert = false
         Task {
             do {
+                let endpoint = endpoint.rawValue
                 let result = try await NetworkManager.shared.fetchRecipes(endpoint: endpoint)
                 recipesVM.recipes = result.recipes
             } catch {
-                // TODO: cleanup error alert to display ResponseError message only.
-                // TODO: refactor to separate method.
                 presentErrorAlert(with: error)
             }
         }

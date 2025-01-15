@@ -33,10 +33,10 @@ class ImageCache {
         }
     }
     
-    func loadImageFromDisk(forUrlString urlString: String?) -> UIImage? {
-        guard let urlString = urlString else { return nil }
+    func loadImageFromDisk(forCellData cellData: Recipe) -> UIImage? {
+        guard let urlString = cellData.photoUrlSmall else { return nil }
         guard let url = URL(string: urlString) else { return nil }
-        let key = hashedKey(for: url)
+        let key = hashedKey(forCellData: cellData)
         return loadImageFromDisk(forKey: key)
     }
     
@@ -51,14 +51,16 @@ class ImageCache {
         return image
     }
     
-    func fetchImage(url: URL, completion: @escaping (UIImage?) -> Void) async throws {
-        let cacheKey = hashedKey(for: url)
+    func fetchImage(forCellData cellData: Recipe, completion: @escaping (UIImage?) -> Void) async throws {
+        let cacheKey = hashedKey(forCellData: cellData)
         
         if let cachedImage = loadImageFromDisk(forKey: cacheKey) {
             completion(cachedImage)
             return
         }
         do {
+            guard let photoUrlString = cellData.photoUrlSmall else { return }
+            guard let url = URL(string: photoUrlString) else { return }
             if let image = try await NetworkManager.shared.loadImage(from: url.absoluteString) {
                 try saveImageToDisk(image, forKey: cacheKey)
                 completion(image)
@@ -68,7 +70,8 @@ class ImageCache {
         }
     }
     
-    private func hashedKey(for url: URL) -> String {
-        return url.absoluteString.data(using: .utf8)?.base64EncodedString() ?? url.lastPathComponent
+    private func hashedKey(forCellData cellData: Recipe) -> String {
+        return cellData.uuid
+//        return url.absoluteString.data(using: .utf8)?.base64EncodedString() ?? url.lastPathComponent
     }
 }

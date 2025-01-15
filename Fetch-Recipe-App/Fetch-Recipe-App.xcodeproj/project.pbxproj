@@ -38,6 +38,15 @@
 			);
 			target = FADD9FAA2D20866200542579 /* Fetch-Recipe-App */;
 		};
+		FAD997F92D374B0800EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-AppTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets/allRecipes.json,
+				Assets/empty.json,
+				Assets/malformed.json,
+			);
+			target = FADD9FC32D20866300542579 /* Fetch-Recipe-AppTests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -56,6 +65,7 @@
 			exceptions = (
 				FAD997EE2D35C33500EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-App" target */,
 				FAD997EF2D35C33500EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Compile Sources" phase from "Fetch-Recipe-App" target */,
+				FAD997F92D374B0800EACFD1 /* Exceptions for "Fetch-Recipe-App" folder in "Fetch-Recipe-AppTests" target */,
 			);
 			path = "Fetch-Recipe-App";
 			sourceTree = "<group>";
