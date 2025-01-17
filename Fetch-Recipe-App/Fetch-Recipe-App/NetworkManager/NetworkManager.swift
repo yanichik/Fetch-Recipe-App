@@ -45,7 +45,7 @@ enum ResponseError: Error, CustomStringConvertible, LocalizedError {
 struct NetworkManager {
     static let shared = NetworkManager()
     
-    init() { }
+    private init() { }
     
     func fetchRecipes(endpoint: String) async throws -> Recipes{
         guard let url = URL(string: endpoint) else {

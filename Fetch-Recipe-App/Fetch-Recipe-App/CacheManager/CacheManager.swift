@@ -7,12 +7,12 @@
 
 import UIKit
 
-class ImageCache {
-    static let shared = ImageCache()
+struct CacheManager {
+    static let shared = CacheManager()
     
     private init() {}
     
-    private let cacheDirectory: URL = {
+    let cacheDirectory: URL = {
         let paths = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
         let directory = paths[0].appendingPathComponent("ImageCache")
         if !FileManager.default.fileExists(atPath: directory.path) {
@@ -21,12 +21,14 @@ class ImageCache {
         return directory
     }()
     
-    func saveImageToDisk(_ image: UIImage, forKey key: String) throws {
-        guard let data = image.pngData() else { return }
+    @discardableResult
+    func saveImageToDisk(_ image: UIImage, forKey key: String) throws -> Bool {
+        guard let data = image.pngData() else { return false }
         let fileURL = cacheDirectory.appendingPathComponent(key)
         
         do {
             try data.write(to: fileURL)
+            return true
         } catch {
             print("Failed to write image to disk: \(error)")
             throw(error)
@@ -34,8 +36,6 @@ class ImageCache {
     }
     
     func loadImageFromDisk(forCellData cellData: Recipe) -> UIImage? {
-        guard let urlString = cellData.photoUrlSmall else { return nil }
-        guard let url = URL(string: urlString) else { return nil }
         let key = hashedKey(forCellData: cellData)
         return loadImageFromDisk(forKey: key)
     }
@@ -72,6 +72,5 @@ class ImageCache {
     
     private func hashedKey(forCellData cellData: Recipe) -> String {
         return cellData.uuid
-//        return url.absoluteString.data(using: .utf8)?.base64EncodedString() ?? url.lastPathComponent
     }
 }

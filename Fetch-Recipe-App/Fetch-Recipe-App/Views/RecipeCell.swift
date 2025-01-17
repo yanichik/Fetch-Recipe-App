@@ -33,7 +33,7 @@ class RecipeCell: UITableViewCell {
     }
     
     func loadRecipeImage(_ cellData: Recipe) async throws {
-        if let image = ImageCache.shared.loadImageFromDisk(forCellData: cellData) {
+        if let image = CacheManager.shared.loadImageFromDisk(forCellData: cellData) {
             recipeImageView.image = image
             activityIndicator.stopAnimating()
             return
@@ -41,7 +41,7 @@ class RecipeCell: UITableViewCell {
             // Table view cells are being re-used. Since image loading is async, during cell dequeue there is short time where wrong image appears. Nil out the image prior to load so only spinner is visible during loading.
             recipeImageView.image = nil
             do {
-                try await ImageCache.shared.fetchImage(forCellData: cellData) { [weak self] image in
+                try await CacheManager.shared.fetchImage(forCellData: cellData) { [weak self] image in
                     Task {
                         self?.recipeImageView.image = image
                         self?.activityIndicator.stopAnimating()

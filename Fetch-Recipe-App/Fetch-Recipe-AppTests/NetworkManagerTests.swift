@@ -15,12 +15,13 @@ extension Endpoint {
 
 final class NetworkManagerTests: XCTestCase {
     
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    var expectedImage: UIImage? = nil
+    
+    override func setUp() {
+        super.setUp()
+        let bundle = Bundle(for: type(of: self))
+        let fileUrlString = bundle.path(forResource: "apam-balik-small", ofType: "jpg")!
+        expectedImage = UIImage(contentsOfFile: fileUrlString)
     }
     
     func testFetchRecipes_InvalidEndpoint_ThrowError() async {
@@ -44,28 +45,22 @@ final class NetworkManagerTests: XCTestCase {
     func testFetchRecipes_AllRecipesEndpoint_ReturnRecipes() async {
         do {
             let result = try await NetworkManager.shared.fetchRecipes(endpoint: Endpoint.allRecipes.rawValue)
-            XCTAssert(!result.recipes.isEmpty, "Fetching from allRecipes endpoint should not return an empty array.")
+            XCTAssertTrue(!result.recipes.isEmpty, "Fetching from allRecipes endpoint should not return an empty array.")
         } catch {
             XCTFail("Fetching from allRecipes endpoint should not throw an error.")
         }
     }
-//    TODO: add these tests, not necessarily in this class
-//    1. show lazy loading by outputing partial list at load vs after scroll
-//    2.
-
-    func disabledtestExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    
+    func testLoadImageFromUrlString_ReturnImage() async {
+        let testUrlString = "https://d3jbb8n5wk0qxi.cloudfront.net/photos/b9ab0071-b281-4bee-b361-ec340d405320/small.jpg"
+        guard let expectedImage = expectedImage else {
+            XCTFail("Expected image not set.")
+            return
         }
+        guard let loadedImage = try? await NetworkManager.shared.loadImage(from: testUrlString) else {
+            XCTFail("Failed to load image.")
+            return
+        }
+        XCTAssertEqual(loadedImage.pngData(), expectedImage.pngData(), "Loaded image is different from expected image.")
     }
-
 }
